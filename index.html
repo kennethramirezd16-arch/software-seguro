@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>C3. Práctica software seguro</title>
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+        }
+        .container{
+            background:white;
+            padding:30px;
+            border-radius:10px;
+            box-shadow:0 0 10px rgba(0,0,0,0.2);
+            width:300px;
+        }
+        input{
+            width:100%;
+            padding:8px;
+            margin:8px 0;
+        }
+        button{
+            width:100%;
+            padding:10px;
+            background:#007BFF;
+            color:white;
+            border:none;
+            cursor:pointer;
+        }
+        button:hover{
+            background:#0056b3;
+        }
+        .error{
+            color:red;
+            font-size:14px;
+        }
+        .success{
+            color:green;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Registro de Usuario</h2>
+
+    <form id="registroForm">
+        <input type="text" id="nombre" placeholder="Nombre"
+            required minlength="3" maxlength="50">
+
+        <input type="email" id="correo" placeholder="Correo"
+            required>
+
+        <input type="password" id="password" placeholder="Contraseña"
+            required minlength="6">
+
+        <button type="submit">Registrar</button>
+
+        <p id="mensaje"></p>
+    </form>
+</div>
+
+<script>
+document.getElementById("registroForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    validarFormulario();
+});
+
+document.getElementById("password").addEventListener("input", validarPasswordTiempoReal);
+
+function validarFormulario(){
+    let nombre = document.getElementById("nombre").value.trim();
+    let correo = document.getElementById("correo").value.trim();
+    let password = document.getElementById("password").value.trim();
+    let mensaje = document.getElementById("mensaje");
+
+    let sqlInjectionPattern = /(\b(SELECT|INSERT|DELETE|UPDATE|DROP|OR|AND)\b|['"--])/i;
+
+    if(sqlInjectionPattern.test(nombre) || 
+       sqlInjectionPattern.test(correo) || 
+       sqlInjectionPattern.test(password)){
+        mensaje.innerHTML = "Entrada inválida detectada.";
+        mensaje.className = "error";
+        return;
+    }
+
+    let errores = validarPassword(password);
+
+    if(errores.length > 0){
+        mensaje.innerHTML = errores.join("<br>");
+        mensaje.className = "error";
+        return;
+    }
+
+    mensaje.innerHTML = "Registro exitoso.";
+    mensaje.className = "success";
+}
+
+function validarPassword(password){
+    let errores = [];
+
+    if(password.length < 8){
+        errores.push("❌ Debe tener al menos 8 caracteres.");
+    }
+    if(!/[A-Z]/.test(password)){
+        errores.push("❌ Debe contener al menos una letra mayúscula.");
+    }
+    if(!/[0-9]/.test(password)){
+        errores.push("❌ Debe contener al menos un número.");
+    }
+    if(!/[\W_]/.test(password)){
+        errores.push("❌ Debe contener al menos un carácter especial.");
+    }
+
+    return errores;
+}
+
+function validarPasswordTiempoReal(){
+    let password = document.getElementById("password").value;
+    let mensaje = document.getElementById("mensaje");
+
+    let errores = validarPassword(password);
+
+    if(password.length === 0){
+        mensaje.innerHTML = "";
+        return;
+    }
+
+    if(errores.length > 0){
+        mensaje.innerHTML = errores.join("<br>");
+        mensaje.className = "error";
+    } else {
+        mensaje.innerHTML = "Contraseña segura.";
+        mensaje.className = "success";
+    }
+}
+</script>
+
+</body>
+</html>
